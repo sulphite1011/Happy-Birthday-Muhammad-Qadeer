@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>🎂 Birthday Surprise</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Caveat:wght@400;700&family=Poppins:wght@400;600;700&family=Nunito:wght@400;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
+
+    <!-- canvas-confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100vh;
+            font-family: 'Poppins', 'Nunito', sans-serif;
+            background: #fff5e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            padding: 16px;
+        }
+
+        /* ===== BACKGROUND BLOBS ===== */
+        .bg-blobs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            background: #fff5e6;
+        }
+        .bg-blobs .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(64px);
+            opacity: 0.5;
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+        .bg-blobs .blob:nth-child(1) {
+            width: 360px;
+            height: 360px;
+            background: #ffd1dc;
+            top: -80px;
+            left: -120px;
+            animation-duration: 22s;
+        }
+        .bg-blobs .blob:nth-child(2) {
+            width: 300px;
+            height: 300px;
+            background: #e6e6fa;
+            bottom: -60px;
+            right: -100px;
+            animation-duration: 26s;
+            animation-delay: -6s;
+        }
+        .bg-blobs .blob:nth-child(3) {
+            width: 240px;
+            height: 240px;
+            background: #ffe0b2;
+            top: 40%;
+            left: 60%;
+            animation-duration: 24s;
+            animation-delay: -12s;
+        }
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(30px, -40px) scale(1.1);
+            }
+            66% {
+                transform: translate(-20px, 30px) scale(0.95);
+            }
+            100% {
+                transform: translate(40px, 20px) scale(1.05);
+            }
+        }
+
+        /* ===== CARD CONTAINER ===== */
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+            background: #fff8e1;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            padding: 24px 20px 28px;
+            min-height: 480px;
+            max-height: 94vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: box-shadow 0.3s;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (min-width: 600px) {
+            .card {
+                padding: 32px 32px 36px;
+                max-height: 90vh;
+            }
+        }
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px 16px 24px;
+                max-width: 95vw;
+                min-height: 400px;
+            }
+        }
+
+        /* custom scrollbar */
+        .card::-webkit-scrollbar {
+            width: 4px;
+        }
+        .card::-webkit-scrollbar-track {
+            background: #fff3e0;
+            border-radius: 8px;
+        }
+        .card::-webkit-scrollbar-thumb {
+            background: #ffcc80;
+            border-radius: 8px;
+        }
+
+        /* ===== VIEWS ===== */
+        .view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            width: 100%;
+        }
+        .view.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .view.transition-out {
+            opacity: 0;
+            transform: translateY(-12px);
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .title {
+            font-family: 'Pacifico', 'Caveat', cursive;
+            color: #ff9800;
+            font-size: 1.5rem;
+            text-align: center;
+            line-height: 1.3;
+            font-weight: 400;
+        }
+        .title.large {
+            font-size: 1.8rem;
+        }
+        .title.gradient {
+            background: linear-gradient(135deg, #ff9800, #ff6f00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: 0.95rem;
+            color: #5d4037;
+            text-align: center;
+            max-width: 90%;
+            line-height: 1.6;
+        }
+        .subtitle.small {
+            font-size: 0.85rem;
+            color: #8d6e63;
+        }
+        .subtitle.gray {
+            color: #8d6e63;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Poppins', 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 50px;
+            padding: 14px 36px;
+            white-space: nowrap;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 140, 66, 0.35);
+        }
+        .btn-primary:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 20px rgba(255, 140, 66, 0.45);
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+        .btn-secondary {
+            background: #3e2723;
+            color: #fff;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+        }
+        .btn-secondary:hover {
+            transform: scale(1.04);
+        }
+        .btn-outline-cyan {
+            background: transparent;
+            border: 2px solid #81d4fa;
+            color: #0288d1;
+            padding: 12px 28px;
+        }
+        .btn-outline-cyan:hover {
+            background: #e1f5fe;
+            transform: scale(1.03);
+        }
+        .btn-cream {
+            background: #fff3e0;
+            border: 1px solid #ffcc80;
+            color: #e65100;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .btn-cream:hover {
+            background: #ffe0b2;
+            transform: scale(1.04);
+        }
+        .btn-outline-orange {
+            background: transparent;
+            border: 2px solid #ffb347;
+            color: #e65100;
+            padding: 10px 28px;
+        }
+        .btn-outline-orange:hover {
+            background: #fff3e0;
+            transform: scale(1.03);
+        }
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        /* ===== SHIN-CHAN IMAGES ===== */
+        .shinchan-img {
+            border-radius: 16px;
+            object-fit: cover;
+            display: block;
+            animation: floatBounce 3s ease-in-out infinite;
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+        }
+        .shinchan-img.small {
+            width: 100px;
+            height: 100px;
+        }
+        .shinchan-img.large {
+            width: 140px;
+            height: 140px;
+        }
+        @keyframes floatBounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* ===== VIEW 1: START ===== */
+        #view-start .title {
+            font-size: 1.5rem;
+        }
+        #view-start .subtitle {
+            font-size: 0.95rem;
+        }
+
+        /* ===== VIEW 2: TOO LATE ===== */
+        #view-too-late .title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            color: #ff6f00;
+        }
+
+        /* ===== VIEW 3: PARTY ===== */
+        #view-party .sparkles {
+            font-size: 1.6rem;
+            letter-spacing: 6px;
+            animation: sparkle 1.8s ease-in-out infinite alternate;
+        }
+        @keyframes sparkle {
+            0% {
+                opacity: 0.6;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+        .teaser {
+            font-size: 0.85rem;
+            color: #8d6e63;
+            text-align: center;
+        }
+
+        /* ===== VIEW 4: LETTER ===== */
+        .letter-box {
+            background: #fff3e0;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px dashed #ffcc80;
+            width: 100%;
+            max-width: 400px;
+            font-family: 'Kalam', 'Caveat', cursive;
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: #8d6e63;
+            text-align: left;
+            margin: 4px 0;
+        }
+        .letter-box p {
+            margin-bottom: 10px;
+        }
+        .letter-box p:last-child {
+            margin-bottom: 0;
+        }
+        .letter-box .signoff {
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        /* ===== VIEW 5: GALLERY ===== */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+        .gallery-item {
+            aspect-ratio: 1/1;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            background: #fff3e0;
+            border: 2px dashed #ffcc80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: border-color 0.3s, transform 0.2s;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        .gallery-item:active {
+            transform: scale(0.96);
+        }
+        .gallery-item .emoji {
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            font-size: 2.2rem;
+            line-height: 1;
+            pointer-events: none;
+        }
+        .gallery-item .reveal-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            pointer-events: none;
+            background: #f5e6d3;
+        }
+        .gallery-item.revealed {
+            border-color: transparent;
+            background: transparent;
+        }
+        .gallery-item.revealed .emoji {
+            opacity: 0;
+            transform: scale(0.4);
+        }
+        .gallery-item.revealed .reveal-img {
+            opacity: 1;
+            transform: scale(1);
+        }
+        /* fallback gradient for images */
+        .gallery-item .reveal-img[src*="image"] {
+            background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+        }
+
+        /* ===== VIEW 6: PUZZLE ===== */
+        .puzzle-container {
+            width: min(90vw, 320px);
+            max-width: 320px;
+            aspect-ratio: 1/1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            background: #f5e6d3;
+            border-radius: 12px;
+            padding: 4px;
+            touch-action: manipulation;
+        }
+        .puzzle-tile {
+            border-radius: 6px;
+            background-size: 300% 300%;
+            background-repeat: no-repeat;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            touch-action: manipulation;
+            user-select: none;
+            position: relative;
+            background-color: #e8d5c4;
+        }
+        .puzzle-tile:active {
+            transform: scale(0.94);
+        }
+        .puzzle-tile.empty {
+            background: #f5e6d3 !important;
+            border: 2px dashed #d7c0b0;
+            cursor: default;
+            pointer-events: none;
+        }
+        .puzzle-tile.empty:active {
+            transform: none;
+        }
+        .puzzle-tile .tile-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .puzzle-tile:not(.empty) .tile-label {
+            opacity: 0.3;
+        }
+        @media (max-width: 480px) {
+            .puzzle-container {
+                width: 90vw;
+                max-width: 300px;
+            }
+            .puzzle-tile .tile-label {
+                font-size: 1rem;
+            }
+        }
+
+        .puzzle-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        /* win overlay */
+        .puzzle-win-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 248, 225, 0.92);
+            border-radius: 24px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+        .puzzle-win-overlay.show {
+            display: flex;
+        }
+        .puzzle-win-overlay .title {
+            font-size: 2rem;
+        }
+        .puzzle-win-overlay .subtitle {
+            font-size: 1rem;
+        }
+
+        /* ===== VIEW 7: WISHES ===== */
+        .wishes-list {
+            width: 100%;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .wishes-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .wishes-list::-webkit-scrollbar-track {
+            background: #fff3e0;
+            border-radius: 8px;
+        }
+        .wishes-list::-webkit-scrollbar-thumb {
+            background: #ffcc80;
+            border-radius: 8px;
+        }
+        .wish-item {
+            background: #fff8e1;
+            border: 1px solid #ffe0b2;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        .wish-item .num {
+            font-weight: 700;
+            color: #ff9800;
+            font-size: 0.9rem;
+            min-width: 32px;
+            flex-shrink: 0;
+        }
+        .wish-item .text {
+            color: #5d4037;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        /* ===== VIEW 8: FINAL ===== */
+        .heart-frame {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+        .heart-frame svg {
+            position: absolute;
+            inset: -8px;
+            width: calc(100% + 16px);
+            height: calc(100% + 16px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .heart-frame .shinchan-img {
+            position: relative;
+            z-index: 1;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px #ffd1dc, 0 8px 30px rgba(255, 140, 66, 0.2);
+        }
+
+        /* ===== CONFETTI CANVAS ===== */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* ===== UTILITY ===== */
+        .text-center {
+            text-align: center;
+        }
+        .mt-4 {
+            margin-top: 4px;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .gap-4 {
+            gap: 4px;
+        }
+        .w-full {
+            width: 100%;
+        }
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .relative {
+            position: relative;
+        }
+
+        /* ===== RESPONSIVE TWEAKS ===== */
+        @media (max-width: 420px) {
+            .card {
+                padding: 16px 12px 20px;
+                min-height: 360px;
+            }
+            .title {
+                font-size: 1.3rem;
+            }
+            .title.large {
+                font-size: 1.5rem;
+            }
+            .btn {
+                font-size: 0.85rem;
+                padding: 12px 24px;
+            }
+            .btn-secondary {
+                padding: 6px 16px;
+                font-size: 0.8rem;
+            }
+            .shinchan-img {
+                width: 96px;
+                height: 96px;
+            }
+            .shinchan-img.large {
+                width: 120px;
+                height: 120px;
+            }
+            .letter-box {
+                font-size: 1rem;
+                padding: 16px;
+            }
+            .gallery-item {
+                font-size: 1.6rem;
+            }
+            .gallery-item .emoji {
+                font-size: 1.8rem;
+            }
+            .wish-item .text {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card {
+                padding: 12px 10px 16px;
+                min-height: 320px;
+            }
+            .title {
+                font-size: 1.1rem;
+            }
+            .btn {
+                font-size: 0.8rem;
+                padding: 10px 18px;
+            }
+            .shinchan-img {
+                width: 80px;
+                height: 80px;
+            }
+            .puzzle-container {
+                width: 85vw;
+                max-width: 260px;
+            }
+        }
+
+        /* landscape small screens */
+        @media (max-height: 700px) and (orientation: landscape) {
+            .card {
+                max-height: 96vh;
+                min-height: 320px;
+                padding: 16px 20px;
+            }
+            .shinchan-img {
+                width: 80px;
+                height: 80px;
+            }
+            .shinchan-img.large {
+                width: 100px;
+                height: 100px;
+            }
+            .title {
+                font-size: 1.2rem;
+            }
+            .view {
+                gap: 10px;
+            }
+            .wishes-list {
+                max-height: 40vh;
+            }
+        }
+
+        /* fix for very tall screens */
+        @media (min-height: 900px) {
+            .card {
+                padding: 40px 36px 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== BACKGROUND BLOBS ===== -->
+    <div class="bg-blobs" aria-hidden="true">
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
+    </div>
+
+    <!-- ===== CONFETTI CANVAS ===== -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- ===== MAIN CARD ===== -->
+    <div class="card" id="app">
+
+        <!-- ===== VIEW 1: START ===== -->
+        <div class="view active" id="view-start" data-view="start">
+            <img class="shinchan-img" src="./images/image5.jpg" alt="Shin-chan" onerror="this.style.background='linear-gradient(135deg,#ffe0b2,#ffcc80)';this.style.display='block';" />
+            <h1 class="title">Are you ready for your birthday surprise?</h1>
+            <p class="subtitle">Hey bro! Today is extra special because it's your birthday, and I can't imagine celebrating without you. 🎂</p>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="start-yes">Of course!</button>
+                <button class="btn btn-secondary" id="start-nope">Nope</button>
+            </div>
+        </div>
+
+        <!-- ===== VIEW 2: TOO LATE ===== -->
+        <div class="view" id="view-too-late" data-view="too-late">
+            <h1 class="title large">TOO LATE!</h1>
+            <p class="subtitle">The party has started and your RSVP is locked in! No escaping the fun now! 🎈</p>
+            <button class="btn btn-primary" id="too-late-back">Back to the Party 🎉</button>
+        </div>
+
+        <!-- ===== VIEW 3: PARTY ===== -->
+        <div class="view" id="view-party" data-view="party">
+            <div class="sparkles">✨ ✨ ✨</div>
+            <img class="shinchan-img small" src="./images/image3.jpg" alt="Shin-chan party" onerror="this.style.background='linear-gradient(135deg,#ffcc80,#ffb347)';this.style.display='block';" />
+            <h1 class="title">Yay! Let's Party! 🎉</h1>
+            <p class="subtitle">Get ready for cake, laughter, and the best memories. 🎉</p>
+            <p class="teaser">Want to bail on the party?</p>
+            <div class="btn-row">
+                <button class="btn btn-cream" id="party-maybe">Maybe...</button>
+                <button class="btn btn-primary" id="party-letter">Read My Birthday Letter 💌</button>
+            </div>
+        </div>
+
+        <!-- ===== VIEW 4: LETTER ===== -->
+        <div class="view" id="view-letter" data-view="letter">
+            <h1 class="title">A Birthday Letter...</h1>
+            <div class="letter-box">
+                <p>Hey Special One,</p>
+                <p>Thank you for being a part of my journey and making every year brighter. You mean the world to me and I can't wait to make more amazing memories together. Let's celebrate, laugh, and eat lots of cake!</p>
+                <p class="signoff">With love and confetti,<br />Your love 🎂🎉</p>
+            </div>
+            <button class="btn btn-primary" id="letter-gallery">Your Birthday Memories →</button>
+        </div>
+
+        <!-- ===== VIEW 5: GALLERY ===== -->
+        <div class="view" id="view-gallery" data-view="gallery">
+            <h1 class="title">Just Look at you 🙈</h1>
+            <p class="subtitle gray small">Click to see my best person ever!</p>
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- 6 items generated by JS -->
+            </div>
+            <button class="btn btn-primary" id="gallery-puzzle">Birthday Puzzle →</button>
+        </div>
+
+        <!-- ===== VIEW 6: PUZZLE ===== -->
+        <div class="view relative" id="view-puzzle" data-view="puzzle">
+            <h1 class="title">Birthday Puzzle 🧩</h1>
+            <p class="subtitle gray small">Slide the pieces to reveal the birthday surprise!</p>
+            <div class="puzzle-container" id="puzzle-container"></div>
+            <div class="puzzle-actions">
+                <button class="btn btn-outline-orange" id="puzzle-shuffle">Shuffle</button>
+                <button class="btn btn-primary" id="puzzle-wishes">10 Birthday Wishes →</button>
+            </div>
+            <!-- win overlay -->
+            <div class="puzzle-win-overlay" id="puzzle-win">
+                <h1 class="title">🎉 Yay! 🎉</h1>
+                <p class="subtitle">You solved the puzzle!</p>
+                <button class="btn btn-primary" id="puzzle-win-continue">Continue →</button>
+            </div>
+        </div>
+
+        <!-- ===== VIEW 7: WISHES ===== -->
+        <div class="view" id="view-wishes" data-view="wishes">
+            <h1 class="title">10 Birthday Wishes 🎂</h1>
+            <div class="wishes-list" id="wishes-list"></div>
+            <button class="btn btn-primary" id="wishes-final">Final Birthday Surprise →</button>
+        </div>
+
+        <!-- ===== VIEW 8: FINAL ===== -->
+        <div class="view" id="view-final" data-view="final">
+            <div class="heart-frame">
+                <svg viewBox="0 0 100 100" width="160" height="160">
+                    <path d="M50,88 C20,65 0,50 0,35 C0,15 20,5 35,15 L50,28 L65,15 C80,5 100,15 100,35 C100,50 80,65 50,88 Z"
+                    fill="#ffd1dc" opacity="0.5" />
+                    <path d="M50,82 C22,62 6,48 6,35 C6,18 22,10 35,18 L50,30 L65,18 C78,10 94,18 94,35 C94,48 78,62 50,82 Z"
+                    fill="#ffb6c1" opacity="0.4" />
+                </svg>
+                <img class="shinchan-img large" src="./images/image4.jpg" alt="Shin-chan final" onerror="this.style.background='linear-gradient(135deg,#ffb6c1,#ff8a9e)';this.style.display='block';" />
+            </div>
+            <h1 class="title gradient large">Happy Birthday bro! 🎉</h1>
+            <p class="subtitle">Thank you for being here and making my life so special. Let's make this year the best one yet! 🎂❤️</p>
+            <button class="btn btn-outline-cyan" id="final-back">Back to Start</button>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        //  CONFIG
+        // ============================================================
+        const IMAGES_BASE = './images/';
+        const GALLERY_COUNT = 6;
+        const GALLERY_EMOJIS = ['👻', '🦋', '🎈', '🎁', '🍰', '🥳'];
+        const GALLERY_FILES = ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg', 'image5.jpg', 'image6.jpg'];
+
+        const WISHES = [
+            'May your year be filled with laughter and joy!',
+            'Wishing you endless adventures and fun.',
+            'May all your dreams come true this year.',
+            'Hope you get all the cake you want!',
+            'May your bond grow even stronger.',
+            'Wishing you lots of surprises and gifts!',
+            'May you always find reasons to smile.',
+            'Hope your heart is always full of happiness.',
+            'May you shine brighter every day.',
+            'And may we celebrate many more together!'
+        ];
+
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let currentView = 'start';
+        let galleryRevealed = new Array(GALLERY_COUNT).fill(false);
+        let puzzleState = []; // 0-8, 8 = empty
+        let puzzleSolved = false;
+        let puzzleWinShown = false;
+        let isTransitioning = false;
+
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const views = {
+            start: document.getElementById('view-start'),
+            'too-late': document.getElementById('view-too-late'),
+            party: document.getElementById('view-party'),
+            letter: document.getElementById('view-letter'),
+            gallery: document.getElementById('view-gallery'),
+            puzzle: document.getElementById('view-puzzle'),
+            wishes: document.getElementById('view-wishes'),
+            final: document.getElementById('view-final'),
+        };
+
+        const galleryGrid = document.getElementById('gallery-grid');
+        const puzzleContainer = document.getElementById('puzzle-container');
+        const puzzleWin = document.getElementById('puzzle-win');
+        const wishesList = document.getElementById('wishes-list');
+
+        // ============================================================
+        //  VIEW MANAGEMENT
+        // ============================================================
+        function showView(name) {
+            if (isTransitioning) return;
+            if (name === currentView) return;
+
+            isTransitioning = true;
+
+            const oldView = views[currentView];
+            const newView = views[name];
+
+            if (oldView) {
+                oldView.classList.remove('active');
+                oldView.classList.add('transition-out');
+                setTimeout(() => {
+                    oldView.classList.remove('transition-out');
+                }, 400);
+            }
+
+            // hide all
+            Object.values(views).forEach(v => v.classList.remove('active'));
+
+            // show new
+            newView.classList.add('active');
+
+            // trigger confetti on party and final
+            if (name === 'party') {
+                triggerConfettiBurst();
+                startConfettiRain();
+            }
+            if (name === 'final') {
+                triggerConfettiBurst();
+                startConfettiRain();
+            }
+            if (name === 'puzzle') {
+                // check if puzzle needs init
+                if (puzzleState.length === 0) initPuzzle();
+            }
+
+            currentView = name;
+
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 450);
+
+            // scroll to top of card
+            const card = document.querySelector('.card');
+            if (card) card.scrollTop = 0;
+        }
+
+        // ============================================================
+        //  CONFETTI
+        // ============================================================
+        let confettiRainInterval = null;
+
+        function triggerConfettiBurst() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.5 },
+                    colors: ['#ff9800', '#ffb347', '#ff6f00', '#ffd1dc', '#e6e6fa', '#ffcc80']
+                });
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 60,
+                        spread: 60,
+                        origin: { y: 0.3, x: 0.3 },
+                        colors: ['#ffb347', '#ffd1dc', '#ffcc80']
+                    });
+                    confetti({
+                        particleCount: 60,
+                        spread: 60,
+                        origin: { y: 0.3, x: 0.7 },
+                        colors: ['#ff9800', '#e6e6fa', '#ffb347']
+                    });
+                }, 300);
+            }
+        }
+
+        function startConfettiRain() {
+            stopConfettiRain();
+            if (typeof confetti === 'function') {
+                let count = 0;
+                confettiRainInterval = setInterval(() => {
+                    confetti({
+                        particleCount: 3,
+                        spread: 30,
+                        origin: { y: 0, x: Math.random() },
+                        colors: ['#ff9800', '#ffb347', '#ffd1dc', '#e6e6fa', '#ffcc80'],
+                        startVelocity: 15 + Math.random() * 10,
+                    });
+                    count++;
+                    if (count > 200) {
+                        // slow down after a while
+                        if (count % 3 === 0) return;
+                    }
+                }, 120);
+            }
+        }
+
+        function stopConfettiRain() {
+            if (confettiRainInterval) {
+                clearInterval(confettiRainInterval);
+                confettiRainInterval = null;
+            }
+        }
+
+        // ============================================================
+        //  RUNAWAY BUTTON
+        // ============================================================
+        function setupRunawayButton() {
+            const btn = document.getElementById('start-nope');
+            const card = document.querySelector('.card');
+
+            function getBtnRect() {
+                return btn.getBoundingClientRect();
+            }
+
+            function getCardRect() {
+                return card.getBoundingClientRect();
+            }
+
+            function moveButtonAway(clientX, clientY) {
+                const btnRect = getBtnRect();
+                const cardRect = getCardRect();
+
+                const btnCenterX = btnRect.left + btnRect.width / 2;
+                const btnCenterY = btnRect.top + btnRect.height / 2;
+
+                const dx = clientX - btnCenterX;
+                const dy = clientY - btnCenterY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 120 && dist > 0) {
+                    const angle = Math.atan2(dy, dx);
+                    const pushDist = Math.min(80 + Math.random() * 60, 150);
+
+                    let newX = btn.offsetLeft - Math.cos(angle) * pushDist;
+                    let newY = btn.offsetTop - Math.sin(angle) * pushDist;
+
+                    // clamp inside card
+                    const cardW = card.clientWidth - btn.offsetWidth - 8;
+                    const cardH = card.clientHeight - btn.offsetHeight - 8;
+                    newX = Math.max(4, Math.min(cardW, newX));
+                    newY = Math.max(4, Math.min(cardH, newY));
+
+                    btn.style.position = 'relative';
+                    btn.style.left = '0px';
+                    btn.style.top = '0px';
+                    btn.style.transform = `translate(${newX - btn.offsetLeft}px, ${newY - btn.offsetTop}px)`;
+                    btn.style.transition = 'transform 0.2s ease-out';
+                }
+            }
+
+            function resetBtnPosition() {
+                btn.style.transform = 'translate(0, 0)';
+                btn.style.transition = 'transform 0.15s ease';
+            }
+
+            // Mouse
+            card.addEventListener('mousemove', (e) => {
+                if (currentView !== 'start') return;
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX;
+                const y = e.clientY;
+                // only if inside card
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    moveButtonAway(x, y);
+                }
+            });
+
+            // Touch
+            card.addEventListener('touchstart', (e) => {
+                if (currentView !== 'start') return;
+                const touch = e.touches[0];
+                if (!touch) return;
+                const rect = card.getBoundingClientRect();
+                const x = touch.clientX;
+                const y = touch.clientY;
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    // check if near button
+                    const btnRect = btn.getBoundingClientRect();
+                    const cx = btnRect.left + btnRect.width / 2;
+                    const cy = btnRect.top + btnRect.height / 2;
+                    const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+                    if (dist < 140) {
+                        e.preventDefault();
+                        // jump to random position
+                        const cardW = card.clientWidth - btn.offsetWidth - 8;
+                        const cardH = card.clientHeight - btn.offsetHeight - 8;
+                        const newX = 4 + Math.random() * cardW;
+                        const newY = 4 + Math.random() * cardH;
+                        btn.style.transform = `translate(${newX - btn.offsetLeft}px, ${newY - btn.offsetTop}px)`;
+                        btn.style.transition = 'transform 0.15s ease';
+                    }
+                }
+            });
+
+            // Reset when view changes away from start
+            document.addEventListener('viewChanged', () => {
+                if (currentView !== 'start') {
+                    resetBtnPosition();
+                }
+            });
+
+            // Also reset on click of "Of course!"
+            document.getElementById('start-yes').addEventListener('click', resetBtnPosition);
+        }
+
+        // ============================================================
+        //  GALLERY
+        // ============================================================
+        function buildGallery() {
+            galleryGrid.innerHTML = '';
+            for (let i = 0; i < GALLERY_COUNT; i++) {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.dataset.index = i;
+
+                const emoji = document.createElement('span');
+                emoji.className = 'emoji';
+                emoji.textContent = GALLERY_EMOJIS[i];
+                item.appendChild(emoji);
+
+                const img = document.createElement('img');
+                img.className = 'reveal-img';
+                img.src = IMAGES_BASE + GALLERY_FILES[i];
+                img.alt = `Photo ${i+1}`;
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                };
+                item.appendChild(img);
+
+                item.addEventListener('click', () => {
+                    revealGalleryItem(i);
+                });
+
+                galleryGrid.appendChild(item);
+            }
+        }
+
+        function revealGalleryItem(index) {
+            if (galleryRevealed[index]) return;
+            galleryRevealed[index] = true;
+            const items = galleryGrid.querySelectorAll('.gallery-item');
+            const item = items[index];
+            if (item) {
+                item.classList.add('revealed');
+                // ensure image is visible
+                const img = item.querySelector('.reveal-img');
+                if (img) {
+                    img.style.display = 'block';
+                }
+            }
+        }
+
+        function resetGallery() {
+            galleryRevealed.fill(false);
+            const items = galleryGrid.querySelectorAll('.gallery-item');
+            items.forEach(item => {
+                item.classList.remove('revealed');
+                const img = item.querySelector('.reveal-img');
+                if (img) {
+                    img.style.display = 'block';
+                }
+            });
+        }
+
+        // ============================================================
+        //  PUZZLE
+        // ============================================================
+        let puzzleImageDataURL = null;
+
+        function generatePuzzleImage() {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 300;
+                canvas.height = 300;
+                const ctx = canvas.getContext('2d');
+
+                const colors = [
+                    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+                    '#98D8C8', '#F7DC6F', '#BB8FCE', '#F1948A',
+                    '#82E0AA'
+                ];
+                const size = 100;
+                const labels = ['🎂', '🎉', '🎈', '🎁', '✨', '🌸', '🍰', '🎊', '🎀'];
+
+                for (let i = 0; i < 9; i++) {
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    const x = col * size;
+                    const y = row * size;
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fillRect(x, y, size, size);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, size, size);
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 40px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(labels[i], x + size / 2, y + size / 2);
+
+                    // subtle overlay
+                    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                    ctx.fillRect(x, y, size, size);
+                }
+
+                puzzleImageDataURL = canvas.toDataURL('image/jpeg', 0.9);
+                resolve(puzzleImageDataURL);
+            });
+        }
+
+        function initPuzzle() {
+            // solved state: [0,1,2,3,4,5,6,7,8] where 8 = empty
+            puzzleState = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            puzzleSolved = false;
+            puzzleWinShown = false;
+            puzzleWin.classList.remove('show');
+            renderPuzzle();
+        }
+
+        function renderPuzzle() {
+            if (!puzzleImageDataURL) return;
+            puzzleContainer.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const tileNum = puzzleState[i];
+                const tile = document.createElement('div');
+                tile.className = 'puzzle-tile';
+                if (tileNum === 8) {
+                    tile.classList.add('empty');
+                } else {
+                    const row = Math.floor(tileNum / 3);
+                    const col = tileNum % 3;
+                    tile.style.backgroundImage = `url(${puzzleImageDataURL})`;
+                    tile.style.backgroundSize = '300% 300%';
+                    tile.style.backgroundPosition = `${col * 100}% ${row * 100}%`;
+
+                    // label
+                    const label = document.createElement('span');
+                    label.className = 'tile-label';
+                    label.textContent = tileNum + 1;
+                    tile.appendChild(label);
+
+                    tile.dataset.position = i;
+                    tile.dataset.tile = tileNum;
+                    tile.addEventListener('click', () => onPuzzleTileClick(i));
+                    tile.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        onPuzzleTileClick(i);
+                    });
+                }
+                puzzleContainer.appendChild(tile);
+            }
+            checkPuzzleWin();
+        }
+
+        function onPuzzleTileClick(position) {
+            if (puzzleSolved) return;
+            const emptyPos = puzzleState.indexOf(8);
+            const row = Math.floor(position / 3);
+            const col = position % 3;
+            const emptyRow = Math.floor(emptyPos / 3);
+            const emptyCol = emptyPos % 3;
+
+            const dr = Math.abs(row - emptyRow);
+            const dc = Math.abs(col - emptyCol);
+            if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+                // swap
+                [puzzleState[position], puzzleState[emptyPos]] = [puzzleState[emptyPos], puzzleState[position]];
+                renderPuzzle();
+            }
+        }
+
+        function shufflePuzzle() {
+            if (puzzleSolved) {
+                puzzleSolved = false;
+                puzzleWinShown = false;
+                puzzleWin.classList.remove('show');
+            }
+            // start from solved
+            puzzleState = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            // 100 random valid moves
+            for (let i = 0; i < 100; i++) {
+                const emptyPos = puzzleState.indexOf(8);
+                const neighbors = [];
+                const row = Math.floor(emptyPos / 3);
+                const col = emptyPos % 3;
+                if (row > 0) neighbors.push(emptyPos - 3);
+                if (row < 2) neighbors.push(emptyPos + 3);
+                if (col > 0) neighbors.push(emptyPos - 1);
+                if (col < 2) neighbors.push(emptyPos + 1);
+                const rand = neighbors[Math.floor(Math.random() * neighbors.length)];
+                [puzzleState[emptyPos], puzzleState[rand]] = [puzzleState[rand], puzzleState[emptyPos]];
+            }
+            puzzleSolved = false;
+            puzzleWinShown = false;
+            puzzleWin.classList.remove('show');
+            renderPuzzle();
+        }
+
+        function checkPuzzleWin() {
+            if (puzzleSolved) return;
+            const isSolved = puzzleState.every((val, idx) => val === idx);
+            if (isSolved) {
+                puzzleSolved = true;
+                puzzleWinShown = true;
+                puzzleWin.classList.add('show');
+                triggerConfettiBurst();
+                // also do a little extra confetti
+                setTimeout(() => triggerConfettiBurst(), 500);
+            }
+        }
+
+        function resetPuzzle() {
+            puzzleState = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            puzzleSolved = false;
+            puzzleWinShown = false;
+            puzzleWin.classList.remove('show');
+            renderPuzzle();
+        }
+
+        // ============================================================
+        //  WISHES
+        // ============================================================
+        function buildWishes() {
+            wishesList.innerHTML = '';
+            WISHES.forEach((wish, idx) => {
+                const item = document.createElement('div');
+                item.className = 'wish-item';
+                const num = document.createElement('span');
+                num.className = 'num';
+                num.textContent = String(idx + 1).padStart(2, '0');
+                const text = document.createElement('span');
+                text.className = 'text';
+                text.textContent = wish;
+                item.appendChild(num);
+                item.appendChild(text);
+                wishesList.appendChild(item);
+            });
+        }
+
+        // ============================================================
+        //  RESET ALL
+        // ============================================================
+        function resetAll() {
+            stopConfettiRain();
+            resetGallery();
+            resetPuzzle();
+            // reset runaway button position
+            const btn = document.getElementById('start-nope');
+            if (btn) {
+                btn.style.transform = 'translate(0, 0)';
+                btn.style.transition = 'transform 0.15s ease';
+            }
+            // ensure puzzle image is loaded
+            if (!puzzleImageDataURL) {
+                generatePuzzleImage().then(() => {
+                    initPuzzle();
+                });
+            } else {
+                initPuzzle();
+            }
+            // reset views
+            showView('start');
+        }
+
+        // ============================================================
+        //  NAVIGATION EVENTS
+        // ============================================================
+        function setupNavigation() {
+            // Start → Party
+            document.getElementById('start-yes').addEventListener('click', () => {
+                showView('party');
+            });
+
+            // Too Late → Party
+            document.getElementById('too-late-back').addEventListener('click', () => {
+                showView('party');
+            });
+
+            // Party → Too Late
+            document.getElementById('party-maybe').addEventListener('click', () => {
+                showView('too-late');
+            });
+
+            // Party → Letter
+            document.getElementById('party-letter').addEventListener('click', () => {
+                showView('letter');
+            });
+
+            // Letter → Gallery
+            document.getElementById('letter-gallery').addEventListener('click', () => {
+                showView('gallery');
+            });
+
+            // Gallery → Puzzle
+            document.getElementById('gallery-puzzle').addEventListener('click', () => {
+                if (!puzzleImageDataURL) {
+                    generatePuzzleImage().then(() => {
+                        initPuzzle();
+                        showView('puzzle');
+                    });
+                } else {
+                    initPuzzle();
+                    showView('puzzle');
+                }
+            });
+
+            // Puzzle → Wishes
+            document.getElementById('puzzle-wishes').addEventListener('click', () => {
+                showView('wishes');
+            });
+
+            // Puzzle Shuffle
+            document.getElementById('puzzle-shuffle').addEventListener('click', () => {
+                if (!puzzleImageDataURL) {
+                    generatePuzzleImage().then(() => {
+                        shufflePuzzle();
+                    });
+                } else {
+                    shufflePuzzle();
+                }
+            });
+
+            // Puzzle Win Continue
+            document.getElementById('puzzle-win-continue').addEventListener('click', () => {
+                showView('wishes');
+            });
+
+            // Wishes → Final
+            document.getElementById('wishes-final').addEventListener('click', () => {
+                showView('final');
+            });
+
+            // Final → Start (reset all)
+            document.getElementById('final-back').addEventListener('click', () => {
+                resetAll();
+            });
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        async function init() {
+            // Generate puzzle image first
+            await generatePuzzleImage();
+
+            // Build gallery
+            buildGallery();
+
+            // Build wishes
+            buildWishes();
+
+            // Init puzzle
+            initPuzzle();
+
+            // Setup runaway button
+            setupRunawayButton();
+
+            // Setup navigation
+            setupNavigation();
+
+            // Show start
+            showView('start');
+
+            // Handle view changes for confetti
+            document.addEventListener('viewChanged', () => {
+                // already handled in showView
+            });
+
+            // Small confetti burst on load
+            setTimeout(() => {
+                triggerConfettiBurst();
+            }, 600);
+
+            console.log('🎂 Birthday Surprise ready!');
+        }
+
+        // ============================================================
+        //  OVERRIDE showView to dispatch event
+        // ============================================================
+        const originalShowView = showView;
+        showView = function(name) {
+            originalShowView(name);
+            document.dispatchEvent(new CustomEvent('viewChanged', { detail: { view: name } }));
+        };
+
+        // ============================================================
+        //  START
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+</html>
